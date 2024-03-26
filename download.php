@@ -161,9 +161,11 @@ for (;;) {
     // now create a good filename...
     $url_parts = explode('/', $the_posted_image);
     $url_parts = array_reverse($url_parts); // .. done!
-
-    // [2] => year, [1] => month, [0] => filename
-    $filename = "$url_parts[2]-$url_parts[1]-$url_parts[0]";
+    $parsedUrl = parse_url($url, PHP_URL_PATH);
+    preg_match('/\d{4}\/\d{2}\/\d{2}/', $parsedUrl, $matches);
+    // posted date
+    $prefix = str_replace('/', '-', $matches[0]);
+    $filename = "$prefix-$url_parts[0]";
 
     // check file exists already
     if (file_exists($path_for_images.$filename)) {

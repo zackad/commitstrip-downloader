@@ -1,5 +1,6 @@
 #!/usr/bin/env php
 <?php
+
 /* -- CONFIGURATION -----------------------------------*/
 
 // MUST have a trailing slash! - also will try to create the dir if not existing (recursive, can be relative)
@@ -25,7 +26,8 @@ $script_start = microtime(true);
 error_reporting(E_ALL ^ E_WARNING ^ E_NOTICE);
 
 /* -- functions start. -----------------------------------*/
-function curl_url_get_contents($url) {
+function curl_url_get_contents($url)
+{
     $ch = curl_init();
     $options = array(
         CURLOPT_SSL_VERIFYPEER => false,
@@ -45,14 +47,15 @@ function curl_url_get_contents($url) {
     return $html;
 }
 
-function get_item_count() {
+function get_item_count()
+{
     global $language;
     $dom = new DOMDocument();
     // load html page
     $dom->loadHTML(curl_url_get_contents("https://www.commitstrip.com/".$language."/"));
     $dom->preserveWhiteSpace = false;
-    
-    // get href of anchor that has the class "last" 
+
+    // get href of anchor that has the class "last"
     $finder    = new DomXPath($dom);
     $classname = "last";
     $nodes     = $finder->query("//a[contains(@class, '$classname')]");
@@ -60,7 +63,7 @@ function get_item_count() {
     if (!empty($nodes)) {
         // get the last page number
         $lastpage = basename(rtrim($nodes->item(0)->getAttribute('href'), '/'));
-        
+
         // download last page
         $domx = new DOMDocument();
         $domx->loadHTML(curl_url_get_contents($nodes->item(0)->getAttribute('href')));
@@ -69,23 +72,24 @@ function get_item_count() {
         // find the count of comics on this page
         $finder    = new DomXPath($domx);
         $nodes     = $finder->query("//section");
-        
+
         // 20 comics per page + the count of comic on last page
         $items = (20 * $lastpage) + $nodes->length;
         return $items;
-        
+
     }
     return false;
 
 }
 
-function get_next_post_url($url) {
+function get_next_post_url($url)
+{
     $dom = new DOMDocument();
     // load html page
     $dom->loadHTML(curl_url_get_contents($url));
     $dom->preserveWhiteSpace = false;
-    
-    // get href of anchor that has the class "last" 
+
+    // get href of anchor that has the class "last"
     $finder    = new DomXPath($dom);
     $classname = "nav-next";
     $nodes     = $finder->query("//*[contains(@class, '$classname')]/a");
@@ -107,8 +111,9 @@ if (!is_dir($path_for_images)) {
 }
 
 //Check language
-if($language != 'fr' && $language != 'en')
+if($language != 'fr' && $language != 'en') {
     exit('Error: language can only be FR or EN');
+}
 
 $url       = "";
 $i         = 0;
@@ -125,7 +130,7 @@ for (;;) {
     $html = curl_url_get_contents($url);
 
     $doc = new DOMDocument();
-    
+
     $doc->loadHTML($html);
     $doc->preserveWhiteSpace = false;
 
@@ -138,7 +143,7 @@ for (;;) {
         $urls[] = $image->getAttribute('src');
     }
 
-    $the_posted_image = FALSE;
+    $the_posted_image = false;
 
     // filter the main url...
     foreach ($urls as $key => $value) {
@@ -147,7 +152,7 @@ for (;;) {
         }
     }
 
-    if ($the_posted_image === FALSE) {
+    if ($the_posted_image === false) {
         echo "($i/$last_item) No image found..." . PHP_EOL;
         continue;
     }
@@ -165,15 +170,15 @@ for (;;) {
         echo "($i/$last_item) File skipped: $the_posted_image" . PHP_EOL;
         continue;
     }
-    
+
     // download it...
     $res = file_put_contents($path_for_images.$filename, curl_url_get_contents($the_posted_image));
 
     // I hope it does not fail - Why should it fail at all?!
-    if ($res !== FALSE) {
+    if ($res !== false) {
         echo "($i/$last_item) Downloaded: $the_posted_image" . PHP_EOL;
     } else {
-        echo "($i/$last_item) Failed downloading: $the_posted_image" . PHP_EOL; 
+        echo "($i/$last_item) Failed downloading: $the_posted_image" . PHP_EOL;
     }
 }
 
